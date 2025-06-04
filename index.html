@@ -28,6 +28,7 @@
 <body>
 <h1>Othello</h1>
 <div id="status"></div>
+<button id="restart">Restart</button>
 <table id="board"></table>
 <script>
 const SIZE = 8;
@@ -139,9 +140,17 @@ function endGame() {
         `Game over. Black: ${black}  White: ${white}. ${winner}`;
 }
 
+function restartGame() {
+    initBoard();
+    currentPlayer = 1;
+    drawBoard();
+    updateStatus();
+}
+
 initBoard();
 drawBoard();
 updateStatus();
+document.getElementById('restart').addEventListener('click', restartGame);
 </script>
 </body>
 </html>
