@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Othello Game</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        #board { border-collapse: collapse; margin: 20px auto; }
+        #board td {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #000;
+            position: relative;
+            background-color: green;
+        }
+        .piece {
+            border-radius: 50%;
+            width: 80%;
+            height: 80%;
+            position: absolute;
+            top: 10%;
+            left: 10%;
+        }
+        .black { background: black; }
+        .white { background: white; }
+    </style>
+</head>
+<body>
+<h1>Othello</h1>
+<div id="status"></div>
+<table id="board"></table>
+<script>
+const SIZE = 8;
+let board = [];
+let currentPlayer = 1;
+
+function initBoard() {
+    board = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+    board[3][3] = -1;
+    board[3][4] = 1;
+    board[4][3] = 1;
+    board[4][4] = -1;
+}
+
+function drawBoard() {
+    const table = document.getElementById('board');
+    table.innerHTML = '';
+    for (let r = 0; r < SIZE; r++) {
+        const row = table.insertRow();
+        for (let c = 0; c < SIZE; c++) {
+            const cell = row.insertCell();
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+            cell.addEventListener('click', handleClick);
+            const piece = document.createElement('div');
+            piece.classList.add('piece');
+            if (board[r][c] === 1) piece.classList.add('black');
+            if (board[r][c] === -1) piece.classList.add('white');
+            cell.appendChild(piece);
+        }
+    }
+}
+
+function inBounds(r, c) {
+    return r >= 0 && r < SIZE && c >= 0 && c < SIZE;
+}
+
+function validMoves(player) {
+    const moves = [];
+    for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+            if (board[r][c] !== 0) continue;
+            if (wouldFlip(r, c, player).length) moves.push({ r, c });
+        }
+    }
+    return moves;
+}
+
+function wouldFlip(r, c, player) {
+    const flips = [];
+    const dirs = [
+        [-1, -1], [-1, 0], [-1, 1],
+        [0, -1],           [0, 1],
+        [1, -1],  [1, 0],  [1, 1]
+    ];
+    for (const [dr, dc] of dirs) {
+        let nr = r + dr;
+        let nc = c + dc;
+        const line = [];
+        while (inBounds(nr, nc) && board[nr][nc] === -player) {
+            line.push([nr, nc]);
+            nr += dr;
+            nc += dc;
+        }
+        if (inBounds(nr, nc) && board[nr][nc] === player && line.length) {
+            flips.push(...line);
+        }
+    }
+    return flips;
+}
+
+function handleClick(event) {
+    const r = parseInt(this.dataset.row);
+    const c = parseInt(this.dataset.col);
+    if (board[r][c] !== 0) return;
+    const flips = wouldFlip(r, c, currentPlayer);
+    if (!flips.length) return;
+    board[r][c] = currentPlayer;
+    for (const [fr, fc] of flips) board[fr][fc] = currentPlayer;
+    currentPlayer *= -1;
+    if (!validMoves(currentPlayer).length) {
+        currentPlayer *= -1;
+        if (!validMoves(currentPlayer).length) {
+            endGame();
+            return;
+        } else {
+            alert('No valid moves. Turn skipped.');
+        }
+    }
+    updateStatus();
+    drawBoard();
+}
+
+function updateStatus() {
+    const black = board.flat().filter(x => x === 1).length;
+    const white = board.flat().filter(x => x === -1).length;
+    const playerStr = currentPlayer === 1 ? 'Black' : 'White';
+    document.getElementById('status').textContent =
+        `Black: ${black}  White: ${white} - ${playerStr}'s turn`;
+}
+
+function endGame() {
+    const black = board.flat().filter(x => x === 1).length;
+    const white = board.flat().filter(x => x === -1).length;
+    let winner = 'Draw';
+    if (black > white) winner = 'Black wins!';
+    else if (white > black) winner = 'White wins!';
+    document.getElementById('status').textContent =
+        `Game over. Black: ${black}  White: ${white}. ${winner}`;
+}
+
+initBoard();
+drawBoard();
+updateStatus();
+</script>
+</body>
+</html>
