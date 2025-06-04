@@ -23,6 +23,16 @@
         }
         .black { background: black; }
         .white { background: white; }
+        .hint {
+            border-radius: 50%;
+            width: 20%;
+            height: 20%;
+            background: yellow;
+            opacity: 0.8;
+            position: absolute;
+            top: 40%;
+            left: 40%;
+        }
     </style>
 </head>
 <body>
@@ -46,6 +56,8 @@ function initBoard() {
 function drawBoard() {
     const table = document.getElementById('board');
     table.innerHTML = '';
+    const moves = validMoves(currentPlayer);
+    const hintSet = new Set(moves.map(m => `${m.r},${m.c}`));
     for (let r = 0; r < SIZE; r++) {
         const row = table.insertRow();
         for (let c = 0; c < SIZE; c++) {
@@ -58,6 +70,11 @@ function drawBoard() {
             if (board[r][c] === 1) piece.classList.add('black');
             if (board[r][c] === -1) piece.classList.add('white');
             cell.appendChild(piece);
+            if (hintSet.has(`${r},${c}`) && board[r][c] === 0) {
+                const hint = document.createElement('div');
+                hint.classList.add('hint');
+                cell.appendChild(hint);
+            }
         }
     }
 }
